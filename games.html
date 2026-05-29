@@ -368,7 +368,6 @@ async function fetchGames(){
 
         const [gamesRes, wtfGamesRes] = await Promise.all([
             fetch("/api/games"),
-            fetch("/api/wtfgames")
         ]);
 
         const gamesJson = await gamesRes.json();
