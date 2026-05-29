@@ -124,7 +124,7 @@ async function loadScripts() {
 /* EXECUTE */
 async function executeScript(script) {
     try {
-        const res = await fetch("https://redwingapi.infodmca.org/api/execute", {
+        const res = await fetch("https://redwing.infodmca.org/api/execute", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
