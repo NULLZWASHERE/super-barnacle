@@ -1,108 +1,55 @@
-// api/wtfgames.js
-import crypto from 'crypto';
-
-async function sha256(msg) {
-  const buf = await crypto.subtle.digest(
-    "SHA-256",
-    new TextEncoder().encode(msg)
-  );
-  return [...new Uint8Array(buf)]
-    .map(b => b.toString(16).padStart(2, "0"))
-    .join("");
-}
-
-async function solvePow(challengeBase64) {
-  const decoded = JSON.parse(Buffer.from(challengeBase64, 'base64').toString());
-  const { challenge, difficulty = 4, timestamp } = decoded;
-
-  console.log(`Solving PoW | Difficulty: ${difficulty}`);
-
-  let nonce = 0;
-  const maxAttempts = 8000000;
-
-  while (nonce < maxAttempts) {
-    const formats = [
-      `${challenge}${nonce}`,
-      `${challenge}:${nonce}`,
-      `${challenge}${timestamp}${nonce}`,
-      `${challenge}:${timestamp}:${nonce}`,
-    ];
-
-    for (const input of formats) {
-      const hash = await sha256(input);
-      if (hash.startsWith("0".repeat(difficulty))) {
-        console.log(`✅ Solved! Nonce: ${nonce}`);
-
-        // Create the exact format the frontend uses
-        const solutionObj = {
-          challenge: challenge,
-          nonce: nonce,
-          timestamp: Date.now()   // Use current timestamp
-        };
-
-        const solutionBase64 = Buffer.from(JSON.stringify(solutionObj)).toString('base64');
-
-        return { solutionBase64 };
-      }
-    }
-
-    nonce++;
-    if (nonce % 200000 === 0) {
-      await new Promise(r => setTimeout(r, 1));
-    }
-  }
-
-  throw new Error("PoW solve failed");
-}
-
+// api/games.js
 export default async function handler(req, res) {
-  if (req.method !== "GET") {
-    return res.status(405).json({ error: "Only GET allowed" });
+  if (req.method !== 'GET') {
+    return res.status(405).json({ error: 'Method not allowed' });
   }
-
-  const COOKIE = "server_name_session=8e0dd38f9462b98f3c721be61df5a5aa; key=eyJhbGciOiJIUzI1NiJ9.eyJ1c2VySWQiOiI0MzU3MSIsInVzZXJ0eXBlIjoiZ3Vlc3QiLCJqdGkiOiIxa2dpS1dBY1Jmb1MzV1FyVUdDZ2IiLCJpYXQiOjE3ODAwNzA2NDUsImV4cCI6MTc4MjY2MjY0NX0.uQplBLT2Xp403iir1Us4VkJAVSJQH8RpHD8Wh2XwSMg";
 
   try {
-    const url = "https://aureus.wtf/dashboard/gamesjson?page=1&pageSize=120";
+    // ================== HARDCODED COOKIES ==================
+    const cookies = [
+      'user_id=6a19c1376d1460cfc5b9124b',
+      'session_token=eyJhbGciOiJIUzI1NiJ9.eyJ1c2VySWQiOiI2YTE5YzEzNzZkMTQ2MGNmYzViOTEyNGIiLCJyb2xlIjoiRnJlZSIsInVzZXJuYW1lIjoicmVkd2luZyIsImVtYWlsIjoiZGVjYXBzdG9wQGdtYWlsLmNvbSIsInRhZyI6IjcxODciLCJpYXQiOjE3ODAwNzI3NTksImV4cCI6MTc4MDY3NzU1OX0.-KCVWedL_-unlX3qAYx7kxwc43msQkerEcla9UyIUZk',
+      '__cf_bm=2xlw9ziDNC5EM9acQGyM7tJqco7p_1BrrgPiUZ5QgP0-1780072758.2590444-1.0.1.1-UsOnbwqJTREvTII2_QFUMJl6JLZaJKjiwYhBwXoJhMkYvd4lG.oYhVihL0aO7gkjgRlxG0kkCXEI0FlgbhGLrgMVOkUA8VrmcDyF.SK0mAe5eih3BT_s7Mc2CsObczvX'
+    ].join('; ');
 
-    const baseHeaders = {
-      "accept": "*/*",
-      "accept-language": "en-US,en;q=0.9",
-      "cache-control": "no-cache",
-      "pragma": "no-cache",
-      "sec-ch-ua": "\"Chromium\";v=\"148\", \"Google Chrome\";v=\"148\", \"Not/A)Brand\";v=\"99\"",
-      "sec-ch-ua-mobile": "?0",
-      "sec-ch-ua-platform": "\"Windows\"",
-      "sec-fetch-dest": "empty",
-      "sec-fetch-mode": "cors",
-      "sec-fetch-site": "same-origin",
-      "Cookie": COOKIE,
-      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36",
-      "Referer": "https://aureus.wtf/dashboard/games/",
-    };
+    // Exact URL you requested
+    const targetUrl = "https://serverside.gg/api/games?page=1&limit=30&search=&sortBy=players&sortOrder=desc&plan=all&showLocked=false&_=1780072822734";
 
-    // First attempt
-    let response = await fetch(url, { headers: baseHeaders });
-    let data = await response.json().catch(() => ({}));
+    const response = await fetch(targetUrl, {
+      method: 'GET',
+      headers: {
+        'accept': '*/*',
+        'accept-language': 'en-US,en;q=0.9,es;q=0.8,ru;q=0.7',
+        'authorization': `Bearer eyJhbGciOiJIUzI1NiJ9.eyJ1c2VySWQiOiI2YTE5YzEzNzZkMTQ2MGNmYzViOTEyNGIiLCJyb2xlIjoiRnJlZSIsInVzZXJuYW1lIjoicmVkd2luZyIsImVtYWlsIjoiZGVjYXBzdG9wQGdtYWlsLmNvbSIsInRhZyI6IjcxODciLCJpYXQiOjE3ODAwNzI3NTksImV4cCI6MTc4MDY3NzU1OX0.-KCVWedL_-unlX3qAYx7kxwc43msQkerEcla9UyIUZk`,
+        'cache-control': 'no-cache',
+        'pragma': 'no-cache',
+        'sec-ch-ua': '"Chromium";v="148", "Google Chrome";v="148", "Not/A)Brand";v="99"',
+        'sec-ch-ua-mobile': '?0',
+        'sec-ch-ua-platform': '"Chrome OS"',
+        'sec-fetch-dest': 'empty',
+        'sec-fetch-mode': 'cors',
+        'sec-fetch-site': 'same-origin',
+        'Cookie': cookies
+      }
+    });
 
-    if (data.requiresPow === true) {
-      console.log("🔐 PoW challenge received. Solving...");
-
-      const { solutionBase64 } = await solvePow(data.challenge);
-
-      // Send using the exact header format from browser
-      const headersWithPow = {
-        ...baseHeaders,
-        "x-pow-solution": solutionBase64
-      };
-
-      response = await fetch(url, { headers: headersWithPow });
-      data = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      const errorText = await response.text();
+      return res.status(response.status).json({
+        error: 'Failed to fetch from serverside.gg',
+        status: response.status,
+        details: errorText
+      });
     }
 
+    const data = await response.json();
     return res.status(200).json(data);
-  } catch (err) {
-    console.error(err);
-    return res.status(500).json({ success: false, error: err.message });
+
+  } catch (error) {
+    console.error('Serverside API Error:', error);
+    return res.status(500).json({
+      error: 'Internal server error',
+      message: error.message
+    });
   }
 }
