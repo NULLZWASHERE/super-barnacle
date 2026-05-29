@@ -18,7 +18,7 @@ async function solvePow(challengeBase64) {
   console.log(`Solving PoW | Diff: ${difficulty}`);
 
   let nonce = 0;
-  const maxAttempts = 5000000;
+  const maxAttempts = 8000000;
 
   while (nonce < maxAttempts) {
     const formats = [
@@ -27,23 +27,24 @@ async function solvePow(challengeBase64) {
       `${challenge}${timestamp}${nonce}`,
       `${challenge}:${timestamp}:${nonce}`,
       `${challenge}${nonce}${timestamp}`,
+      `${challenge}:${nonce}:${timestamp}`,
     ];
 
     for (const input of formats) {
       const hash = await sha256(input);
       if (hash.startsWith("0".repeat(difficulty))) {
-        console.log(`✅ Solved! Nonce: ${nonce}`);
-        return { nonce: nonce.toString(), timestamp };
+        console.log(`✅ Solved with nonce: ${nonce}`);
+        return { nonce: nonce.toString(), timestamp, challenge };
       }
     }
 
     nonce++;
-    if (nonce % 150000 === 0) {
-      await new Promise(r => setTimeout(r, 5));
+    if (nonce % 200000 === 0) {
+      await new Promise(r => setTimeout(r, 1));
     }
   }
 
-  throw new Error("PoW solve timeout");
+  throw new Error("Could not solve PoW");
 }
 
 export default async function handler(req, res) {
@@ -51,10 +52,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: "Only GET allowed" });
   }
 
-  const COOKIE = [
-    "server_name_session=8e0dd38f9462b98f3c721be61df5a5aa",
-    "key=eyJhbGciOiJIUzI1NiJ9.eyJ1c2VySWQiOiI0MzU3MSIsInVzZXJ0eXBlIjoiZ3Vlc3QiLCJqdGkiOiIxa2dpS1dBY1Jmb1MzV1FyVUdDZ2IiLCJpYXQiOjE3ODAwNzA2NDUsImV4cCI6MTc4MjY2MjY0NX0.uQplBLT2Xp403iir1Us4VkJAVSJQH8RpHD8Wh2XwSMg"
-  ].join("; ");
+  const COOKIE = "server_name_session=8e0dd38f9462b98f3c721be61df5a5aa; key=eyJhbGciOiJIUzI1NiJ9.eyJ1c2VySWQiOiI0MzU3MSIsInVzZXJ0eXBlIjoiZ3Vlc3QiLCJqdGkiOiIxa2dpS1dBY1Jmb1MzV1FyVUdDZ2IiLCJpYXQiOjE3ODAwNzA2NDUsImV4cCI6MTc4MjY2MjY0NX0.uQplBLT2Xp403iir1Us4VkJAVSJQH8RpHD8Wh2XwSMg";
 
   try {
     const baseUrl = "https://aureus.wtf/dashboard/gamesjson/?page=1&pageSize=120";
@@ -65,34 +63,38 @@ export default async function handler(req, res) {
       "Accept": "application/json",
       "Referer": "https://aureus.wtf/dashboard/games",
       "Origin": "https://aureus.wtf",
+      "Sec-Fetch-Site": "same-origin",
+      "Sec-Fetch-Mode": "cors",
     };
 
-    // Initial request
     let response = await fetch(baseUrl, { headers: baseHeaders });
     let data = await response.json().catch(() => ({}));
 
-    if (data.requiresPow) {
-      console.log("🔐 Solving PoW...");
-      const { nonce } = await solvePow(data.challenge);
+    if (data.requiresPow === true) {
+      console.log("🔐 PoW detected, solving...");
+      const solved = await solvePow(data.challenge);
+      const { nonce, challenge } = solved;
 
       const strategies = [
-        // 1. Query params (most common for GET)
-        `${baseUrl}&pow=${nonce}&challenge=${encodeURIComponent(data.challenge)}`,
-        `${baseUrl}&nonce=${nonce}&challenge=${encodeURIComponent(data.challenge)}`,
+        // Query params - most likely
+        `${baseUrl}&pow=${nonce}`,
+        `${baseUrl}&nonce=${nonce}`,
         `${baseUrl}&solution=${nonce}`,
-        `${baseUrl}&x-pow=${nonce}`,
+        `${baseUrl}&pow_nonce=${nonce}&challenge=${encodeURIComponent(challenge)}`,
+        `${baseUrl}&pow=${challenge}:${nonce}`,
 
-        // 2. Headers
-        { "x-pow-nonce": nonce, "x-challenge": data.challenge },
-        { "x-pow-solution": nonce, "x-challenge": data.challenge },
+        // Headers
+        { "x-pow-nonce": nonce, "x-challenge": challenge },
+        { "x-pow-solution": nonce, "x-challenge": challenge },
+        { "x-pow": `${challenge}:${nonce}` },
         { "x-solution": nonce },
+        { "pow-solution": nonce },
         { "x-pow": nonce },
-        { "pow": nonce },
-        { "x-pow": `${data.challenge}:${nonce}` },
+        { "x-pow-nonce": nonce },
       ];
 
       let success = false;
-      let finalResponse = null;
+      let finalData = null;
 
       for (let strat of strategies) {
         let url = baseUrl;
@@ -106,27 +108,27 @@ export default async function handler(req, res) {
 
         response = await fetch(url, { headers });
         try {
-          finalResponse = await response.json();
+          finalData = await response.json();
         } catch {
-          finalResponse = await response.text();
+          finalData = await response.text();
         }
 
-        if (response.ok && finalResponse && !finalResponse.requiresPow) {
+        if (response.ok && finalData && !finalData.requiresPow) {
           success = true;
-          console.log("✅ PoW bypass worked!");
+          console.log("✅ SUCCESS with strategy!");
           break;
         }
       }
 
       if (!success) {
         return res.status(400).json({
-          error: "All PoW strategies failed",
+          error: "All strategies failed again",
           nonce,
-          lastResponse: finalResponse
+          lastResponse: finalData
         });
       }
 
-      data = finalResponse;
+      data = finalData;
     }
 
     return res.status(200).json(data);
