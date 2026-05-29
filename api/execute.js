@@ -14,7 +14,7 @@ export default async function handler(req, res) {
     const WEBHOOK_URL = "https://discord.com/api/webhooks/1509553153685585982/13HjEAUORgFGhvJ74rKevUfd2Ixx0OPCg9H-spUQ6dEGAlLhvREbC96zwIY8Yc3XkvUz"; // <-- put your webhook here
 
     const COOKIE =
-      "server_name_session=a2e03859d0873635e6f981e9c06c37ef; token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjI1MTM3LCJlbWFpbCI6InJlZHdpbmdzc2ZvbGxvd2VyQGdtYWlsLmNvbSIsInJhbmsiOiJzdGFuZGFyZCIsImlhdCI6MTc3OTk3MDA2NSwiZXhwIjoxNzgwNTc0ODY1fQ.kfkBJdwxGUcA1Omt9dJKR1UocWeyzE9XBo1zE3k__bg";
+      "server_name_session=a2e03859d0873635e6f981e9c06c37ef; token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjI0MzI3LCJlbWFpbCI6InZhbGRhcnZ1c0BnbWFpbC5jb20iLCJyYW5rIjoidXNlciIsImlhdCI6MTc4MDA2OTE0NCwiZXhwIjoxNzgwNjczOTQ0fQ.Of25Rw9ayHY4qBI8Nd70LIgAFfnJJ30lrsrZ1HIJcSM";
 
     const response = await fetch("https://builderx.fun/api/execute", {
       method: "POST",
