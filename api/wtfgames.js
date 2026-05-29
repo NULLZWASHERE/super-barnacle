@@ -1,67 +1,43 @@
-// /api/games.js
-
 export default async function handler(req, res) {
   try {
-    const response = await fetch(
-      "https://aureus.wtf/dashboard/gamesjson/?page=1&pageSize=120",
-      {
-        method: "GET",
-        headers: {
-          "accept": "*/*",
-          "accept-language": "en-US,en;q=0.9,es;q=0.8,ru;q=0.7",
-          "cache-control": "no-cache",
-          "pragma": "no-cache",
-          "priority": "u=1, i",
-          "sec-ch-ua":
-            "\"Chromium\";v=\"148\", \"Google Chrome\";v=\"148\", \"Not/A)Brand\";v=\"99\"",
-          "sec-ch-ua-mobile": "?0",
-          "sec-ch-ua-platform": "\"Chrome OS\"",
-          "sec-fetch-dest": "empty",
-          "sec-fetch-mode": "cors",
-          "sec-fetch-site": "same-origin",
+    // Hardcoded cookies (from your Netscape cookie file)
+    const hardcodedCookies = [
+      `server_name_session=8e0dd38f9462b98f3c721be61df5a5aa`,
+      `key=eyJhbGciOiJIUzI1NiJ9.eyJ1c2VySWQiOiI0MzU3MSIsInVzZXJ0eXBlIjoiZ3Vlc3QiLCJqdGkiOiIxa2dpS1dBY1Jmb1MzV1FyVUdDZ2IiLCJpYXQiOjE3ODAwNzA2NDUsImV4cCI6MTc4MjY2MjY0NX0.uQplBLT2Xp403iir1Us4VkJAVSJQH8RpHD8Wh2XwSMg`
+    ].join('; ');
 
-          // update this if it expires
-          "x-pow-solution":
-            "eyJjaGFsbGVuZ2UiOiIzMmFiMzE0MTcyOTEzMDBkZjAyYWViZmUzOGExZDFmNTRiZDNlYTA0NDUwZGI4MTMzMTVmZWMwZjA1YWM0OTVjIiwibm9uY2UiOjk0MDg3LCJ0aW1lc3RhbXAiOjE3ODAwNzA4MzQyNjZ9"
-        },
-        referrer: "https://aureus.wtf/dashboard/games/",
-      }
-    );
+    const response = await fetch("https://aureus.wtf/dashboard/gamesjson/?page=1&pageSize=120", {
+      method: "GET",
+      headers: {
+        "Cookie": hardcodedCookies,
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36",
+        "Accept": "application/json",
+        "Referer": "https://aureus.wtf",
+      },
+    });
 
-    const text = await response.text();
-
-    let data;
-
-    try {
-      data = JSON.parse(text);
-    } catch {
-      return res.status(500).json({
-        success: false,
-        error: "Invalid JSON returned",
-        raw: text
+    // Forward any Set-Cookie headers from the backend
+    if (response.headers.has("set-cookie")) {
+      const setCookies = response.headers.raw()["set-cookie"];
+      setCookies.forEach((cookie) => {
+        res.setHeader("Set-Cookie", cookie);
       });
     }
 
-    // optional cleanup / formatting
-    const formatted = data.map((game) => ({
-      Name: game.Name,
-      plrs: game.plrs,
-      thumbnail: game.thumbnail,
-      maxPlayers: game.maxPlayers,
-      creator: game.creator,
-      id: game.id,
-      jobids: game.jobids || {},
-      lastLogged: game.lastLogged,
-      Fake: game.Fake,
-      jobidsArray: Object.keys(game.jobids || {}),
-      premium: game.premium
-    }));
+    const text = await response.text();
 
-    res.setHeader("Access-Control-Allow-Origin", "*");
-    res.setHeader("Cache-Control", "s-maxage=30");
-
-    return res.status(200).json(formatted);
+    try {
+      const data = JSON.parse(text);
+      return res.status(response.status).json(data);
+    } catch (e) {
+      return res.status(502).json({
+        success: false,
+        error: "Invalid JSON returned from aureus.wtf",
+        raw: text.substring(0, 300)
+      });
+    }
   } catch (err) {
+    console.error("wtfgames proxy error:", err);
     return res.status(500).json({
       success: false,
       error: err.message
