@@ -7,50 +7,54 @@ export default async function handler(req, res) {
 
     const url = "https://aureus.wtf/dashboard/gamesjson/?page=1&pageSize=120";
 
-    const headers = {
+    const baseHeaders = {
       "Cookie": hardcodedCookies,
       "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36",
       "Accept": "application/json",
       "Referer": "https://aureus.wtf",
     };
 
-    let response = await fetch(url, { method: "GET", headers });
+    let response = await fetch(url, { method: "GET", headers: baseHeaders });
     let text = await response.text();
 
-    // Handle PoW Challenge
+    // === PoW Handling ===
     if (response.status === 403 || text.includes("requiresPow")) {
       try {
         const data = JSON.parse(text);
         if (data.requiresPow && data.challenge) {
-          console.log("🔐 PoW required, solving...");
+          console.log("🔐 PoW challenge received. Solving...");
 
           const solution = await solvePoW(data.challenge);
 
-          // Try multiple common header formats
-          const powHeaders = {
-            ...headers,
-            "X-PoW-Solution": solution,
-            "X-PoW": solution,
-            "X-Challenge": data.challenge,
-            "pow-solution": solution,
-          };
+          // Try multiple header combinations
+          const attempts = [
+            { "X-PoW-Solution": solution },
+            { "X-PoW": solution },
+            { "pow": solution },
+            { "X-Challenge-Solution": solution },
+            { "X-PoW-Nonce": solution },
+          ];
 
-          response = await fetch(url, { 
-            method: "GET", 
-            headers: powHeaders 
-          });
-          text = await response.text();
+          for (const extraHeaders of attempts) {
+            const headers = { ...baseHeaders, ...extraHeaders, "X-Challenge": data.challenge };
+
+            response = await fetch(url, { method: "GET", headers });
+            text = await response.text();
+
+            if (response.status !== 403 && !text.includes("Invalid PoW")) {
+              console.log("✅ PoW accepted with header:", Object.keys(extraHeaders)[0]);
+              break;
+            }
+          }
         }
       } catch (e) {
-        console.error("PoW handling error:", e);
+        console.error("PoW error:", e);
       }
     }
 
-    // Forward cookies
+    // Forward Set-Cookie
     if (response.headers.has("set-cookie")) {
-      response.headers.raw()["set-cookie"].forEach(cookie => {
-        res.setHeader("Set-Cookie", cookie);
-      });
+      response.headers.raw()["set-cookie"].forEach(c => res.setHeader("Set-Cookie", c));
     }
 
     try {
@@ -59,8 +63,8 @@ export default async function handler(req, res) {
     } catch (e) {
       return res.status(502).json({
         success: false,
-        error: "Invalid JSON from server",
-        raw: text.substring(0, 400)
+        error: "Invalid JSON",
+        raw: text.substring(0, 500)
       });
     }
   } catch (err) {
@@ -74,26 +78,29 @@ async function solvePoW(challengeBase64) {
   const decoded = JSON.parse(Buffer.from(challengeBase64, 'base64').toString());
   const { challenge, difficulty = 4 } = decoded;
 
-  console.log(`Solving PoW → Difficulty: ${difficulty}`);
+  console.log(`Solving difficulty ${difficulty}...`);
 
-  const maxAttempts = 1000000;
+  const maxAttempts = 2000000;
 
   for (let nonce = 0; nonce < maxAttempts; nonce++) {
-    const input = `${challenge}${nonce}`;
-    const hash = await sha256(input);
+    // Try different common input formats
+    const formats = [
+      `${challenge}${nonce}`,
+      `${challenge}:${nonce}`,
+      `${challenge}${nonce}${decoded.timestamp || ''}`,
+      `${challenge}:${nonce}:${decoded.timestamp || ''}`,
+    ];
 
-    if (hash.startsWith('0'.repeat(difficulty))) {
-      console.log(`✅ PoW Solved! Nonce: ${nonce}`);
-      return nonce.toString();
-    }
-
-    // Progress log every 100k attempts
-    if (nonce % 100000 === 0 && nonce > 0) {
-      console.log(`Still solving... ${nonce} attempts`);
+    for (const input of formats) {
+      const hash = await sha256(input);
+      if (hash.startsWith('0'.repeat(difficulty))) {
+        console.log(`✅ Solved! Nonce: ${nonce} | Format used: ${input.includes(':') ? 'with colon' : 'plain'}`);
+        return nonce.toString();
+      }
     }
   }
 
-  throw new Error("Could not solve PoW within attempt limit");
+  throw new Error("Failed to solve PoW");
 }
 
 async function sha256(str) {
