@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>RedWing Server Side</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -18,17 +19,27 @@
     --radius-lg:24px;
 }
 
-*{margin:0;padding:0;box-sizing:border-box;}
-
-body{
-    background: radial-gradient(circle at top,#ff000025,transparent 35%),
-                radial-gradient(circle at bottom,#ff000015,transparent 30%),
-                var(--bg);
-    color:var(--text);
-    font-family:'Inter',sans-serif;
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
 }
 
-.dashboard-layout{display:flex;min-height:100vh;}
+body{
+    background:
+        radial-gradient(circle at top,#ff000025,transparent 35%),
+        radial-gradient(circle at bottom,#ff000015,transparent 30%),
+        var(--bg);
+
+    color:var(--text);
+    font-family:'Inter',sans-serif;
+    min-height:100vh;
+}
+
+.dashboard-layout{
+    display:flex;
+    min-height:100vh;
+}
 
 .sidebar{
     width:280px;
@@ -39,12 +50,23 @@ body{
     flex-direction:column;
 }
 
-.logo{display:flex;gap:14px;margin-bottom:40px;align-items:center;}
+.logo{
+    display:flex;
+    gap:14px;
+    align-items:center;
+    margin-bottom:40px;
+}
+
 .logo-icon{
-    width:48px;height:48px;border-radius:16px;
+    width:48px;
+    height:48px;
+    border-radius:16px;
     background:linear-gradient(135deg,#ff0000,#700000);
-    display:flex;align-items:center;justify-content:center;
+    display:flex;
+    align-items:center;
+    justify-content:center;
     font-weight:800;
+    font-size:20px;
 }
 
 .sidebar-link{
@@ -54,54 +76,72 @@ body{
     border-radius:14px;
     color:#ddd;
     text-decoration:none;
+    transition:.2s;
 }
 
-.sidebar-link:hover,.sidebar-link.active{
+.sidebar-link:hover,
+.sidebar-link.active{
     background:rgba(255,0,0,.12);
     border:1px solid rgba(255,0,0,.25);
     color:#fff;
 }
 
-.main-content{flex:1;padding:40px;}
+.main-content{
+    flex:1;
+    padding:40px;
+}
 
-.header h1{font-size:42px;margin-bottom:8px;}
-.header p{color:var(--text-muted);margin-bottom:20px;}
+.header h1{
+    font-size:42px;
+    margin-bottom:8px;
+}
+
+.header p{
+    color:var(--text-muted);
+    margin-bottom:24px;
+}
 
 .controls{
     display:flex;
     gap:12px;
     flex-wrap:wrap;
-    margin:20px 0 30px;
+    margin-bottom:30px;
 }
 
-input,select{
+input,
+select{
     padding:12px 14px;
     border-radius:12px;
     border:1px solid var(--border);
     background:#0a0a0a;
     color:#fff;
     outline:none;
+    min-width:220px;
 }
 
 .stats{
     display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
     gap:20px;
-    margin:20px 0;
+    margin-bottom:30px;
 }
 
 .stat-card{
     background:var(--bg-card);
     border:1px solid var(--border);
     border-radius:var(--radius-lg);
-    padding:20px;
+    padding:24px;
 }
 
-.stat-card h2{color:var(--accent);font-size:34px;}
+.stat-card h2{
+    color:var(--accent);
+    font-size:34px;
+    margin-bottom:8px;
+}
 
 .game-grid{
     display:grid;
-    grid-template-columns:repeat(auto-fill,minmax(300px,1fr));
+    grid-template-columns:repeat(auto-fill,minmax(320px,1fr));
     gap:24px;
 }
 
@@ -110,7 +150,7 @@ input,select{
     border:1px solid var(--border);
     border-radius:var(--radius-lg);
     overflow:hidden;
-    transition:.3s;
+    transition:.25s;
 }
 
 .game-card:hover{
@@ -119,7 +159,7 @@ input,select{
 }
 
 .game-thumb{
-    height:180px;
+    height:190px;
     background-size:cover;
     background-position:center;
     position:relative;
@@ -129,39 +169,53 @@ input,select{
     position:absolute;
     top:12px;
     right:12px;
-    background:rgba(255,0,0,.8);
-    padding:5px 10px;
+    background:rgba(255,0,0,.9);
+    padding:5px 12px;
     border-radius:999px;
     font-size:11px;
+    font-weight:700;
 }
 
-.game-content{padding:20px;}
+.game-content{
+    padding:20px;
+}
 
-.game-name{font-size:18px;font-weight:800;}
-.game-owner{color:var(--text-muted);margin-bottom:15px;}
+.game-name{
+    font-size:20px;
+    font-weight:800;
+    margin-bottom:6px;
+}
+
+.game-owner{
+    color:var(--text-muted);
+    margin-bottom:16px;
+}
 
 .game-stats{
     display:grid;
     grid-template-columns:1fr 1fr;
     gap:10px;
-    margin-bottom:15px;
+    margin-bottom:18px;
 }
 
 .stat-item{
     background:rgba(255,255,255,.03);
     border:1px solid var(--border);
-    padding:10px;
-    border-radius:12px;
+    padding:12px;
+    border-radius:14px;
 }
 
-.stat-val{font-size:16px;font-weight:800;}
+.stat-val{
+    font-size:18px;
+    font-weight:800;
+    margin-bottom:4px;
+}
 
 .server-list{
-    margin-top:12px;
     display:flex;
     flex-direction:column;
-    gap:8px;
-    max-height:220px;
+    gap:10px;
+    max-height:240px;
     overflow:auto;
 }
 
@@ -174,6 +228,39 @@ input,select{
     color:white;
     font-weight:800;
     cursor:pointer;
+    transition:.2s;
+}
+
+.join-btn:hover{
+    transform:scale(1.02);
+}
+
+.loading{
+    text-align:center;
+    color:#888;
+    padding:50px;
+    font-size:18px;
+}
+
+@media(max-width:900px){
+
+    .dashboard-layout{
+        flex-direction:column;
+    }
+
+    .sidebar{
+        width:100%;
+        border-right:none;
+        border-bottom:1px solid var(--border);
+    }
+
+    .main-content{
+        padding:20px;
+    }
+
+    .header h1{
+        font-size:32px;
+    }
 }
 </style>
 </head>
@@ -182,132 +269,377 @@ input,select{
 
 <div class="dashboard-layout">
 
-<aside class="sidebar">
-<div class="logo">
-<div class="logo-icon">R</div>
-<h2>RedWing</h2>
+    <aside class="sidebar">
 
+        <div class="logo">
+            <div class="logo-icon">R</div>
+            <div>
+                <h2>RedWing</h2>
+                <p style="color:#777;font-size:13px;">
+                    Server Side
+                </p>
+            </div>
+        </div>
 
-<main class="main-content">
+        <a class="sidebar-link active" href="#">
+            Dashboard
+        </a>
 
-<div class="header">
-<h1>RedWing Server Side</h1>
-<p>Freemium Active Roblox games running.</p>
+        <a class="sidebar-link" href="#">
+            Active Games
+        </a>
 
-<div class="controls">
-<input id="search" placeholder="Search games...">
-<select id="sort">
-    <option value="players">Most Players</option>
-    <option value="visits">Most Visits</option>
-</select>
-</div>
-</div>
+        <a class="sidebar-link" href="#">
+            Servers
+        </a>
 
-<div class="stats">
-<div class="stat-card">
-<h2 id="gameCount">0</h2>
-<p>Tracked Games</p>
-</div>
+        <a class="sidebar-link" href="#">
+            Analytics
+        </a>
 
-<div class="stat-card">
-<h2 id="playerCount">0</h2>
-<p>Total Players</p>
-</div>
-</div>
+    </aside>
 
-<div class="game-grid" id="gamesContainer"></div>
+    <main class="main-content">
 
-</main>
+        <div class="header">
+
+            <h1>
+                RedWing Server Side
+            </h1>
+
+            <p>
+                Live Roblox games fetched from both APIs.
+            </p>
+
+            <div class="controls">
+
+                <input
+                    id="search"
+                    placeholder="Search games..."
+                >
+
+                <select id="sort">
+                    <option value="players">
+                        Most Players
+                    </option>
+
+                    <option value="visits">
+                        Most Visits
+                    </option>
+                </select>
+
+            </div>
+
+        </div>
+
+        <div class="stats">
+
+            <div class="stat-card">
+                <h2 id="gameCount">0</h2>
+                <p>Tracked Games</p>
+            </div>
+
+            <div class="stat-card">
+                <h2 id="playerCount">0</h2>
+                <p>Total Players</p>
+            </div>
+
+        </div>
+
+        <div
+            class="game-grid"
+            id="gamesContainer"
+        >
+            <div class="loading">
+                Loading APIs...
+            </div>
+        </div>
+
+    </main>
+
 </div>
 
 <script>
 let gamesData = [];
 
 async function fetchGames(){
+
     try{
-        const res = await fetch(window.location.origin + "/api/games")
-        const data = await res.json();
-        gamesData = data.games || [];
+
+        const [gamesRes, wtfGamesRes] = await Promise.all([
+            fetch("/api/games"),
+            fetch("/api/wtfgames")
+        ]);
+
+        const gamesJson = await gamesRes.json();
+        const wtfGamesJson = await wtfGamesRes.json();
+
+        const games1 = Array.isArray(gamesJson)
+            ? gamesJson
+            : (gamesJson.games || []);
+
+        const games2 = Array.isArray(wtfGamesJson)
+            ? wtfGamesJson
+            : (wtfGamesJson.games || []);
+
+        gamesData = [...games1, ...games2];
+
         renderGames();
+
     }catch(err){
+
         console.error(err);
-        document.getElementById("gamesContainer").innerHTML =
-            "<p style='color:red'>Failed to load API</p>";
+
+        document.getElementById(
+            "gamesContainer"
+        ).innerHTML = `
+            <div class="loading" style="color:red;">
+                Failed to load APIs
+            </div>
+        `;
     }
 }
 
 function renderGames(){
-    const container = document.getElementById("gamesContainer");
-    const search = document.getElementById("search").value.toLowerCase();
-    const sort = document.getElementById("sort").value;
+
+    const container =
+        document.getElementById("gamesContainer");
+
+    const search =
+        document.getElementById("search")
+        .value
+        .toLowerCase();
+
+    const sort =
+        document.getElementById("sort")
+        .value;
 
     let games = [...gamesData];
 
+    // normalize api fields
+    games = games.map(g => ({
+
+        name:
+            g.name ||
+            g.Name ||
+            "Unknown",
+
+        creator:
+            g.creator ||
+            "Unknown",
+
+        thumbnail:
+            g.thumbnail ||
+            "",
+
+        totalPlayers:
+            g.totalPlayers ||
+            g.plrs ||
+            0,
+
+        currentPlayers:
+            g.currentPlayers ||
+            g.plrs ||
+            0,
+
+        maxPlayers:
+            g.maxPlayers ||
+            0,
+
+        visits:
+            g.visits ||
+            0,
+
+        placeId:
+            g.placeId ||
+            g.id,
+
+        jobIds:
+            g.jobIds ||
+            g.jobids ||
+            {}
+
+    }));
+
+    // search filter
     if(search){
+
         games = games.filter(g =>
-            (g.name || "").toLowerCase().includes(search) ||
-            (g.creator || "").toLowerCase().includes(search)
+
+            g.name
+            .toLowerCase()
+            .includes(search)
+
+            ||
+
+            g.creator
+            .toLowerCase()
+            .includes(search)
         );
     }
 
+    // sorting
     if(sort === "players"){
-        games.sort((a,b)=> (b.totalPlayers||0) - (a.totalPlayers||0));
+
+        games.sort((a,b)=>
+            (b.totalPlayers||0)
+            -
+            (a.totalPlayers||0)
+        );
+
     }else if(sort === "visits"){
-        games.sort((a,b)=> (b.visits||0) - (a.visits||0));
+
+        games.sort((a,b)=>
+            (b.visits||0)
+            -
+            (a.visits||0)
+        );
     }
 
-    document.getElementById("gameCount").innerText = games.length;
-    document.getElementById("playerCount").innerText =
-        games.reduce((a,b)=>a + (b.totalPlayers||0),0);
+    // stats
+    document.getElementById(
+        "gameCount"
+    ).innerText = games.length;
+
+    document.getElementById(
+        "playerCount"
+    ).innerText = games.reduce(
+        (a,b)=>a+(b.totalPlayers||0),
+        0
+    );
 
     container.innerHTML = "";
 
-    games.forEach(game=>{
-        const card = document.createElement("div");
-        card.className = "game-card";
+    games.forEach(game => {
 
-        const servers = game.jobIds
-            ? Object.keys(game.jobIds).slice(0, 10).map(jobId=>{
-                const url = `https://www.roblox.com/games/start?placeId=${game.placeId}&gameInstanceId=${jobId}`;
+        const jobIds =
+            Object.keys(game.jobIds || {});
+
+        const servers =
+            jobIds.length > 0
+
+            ?
+
+            jobIds.slice(0,10).map(jobId => {
+
+                const url =
+                    `https://www.roblox.com/games/start?placeId=${game.placeId}&gameInstanceId=${jobId}`;
+
                 return `
-                    <button class="join-btn"
-                        onclick="window.open('${url}','_blank')">
+                    <button
+                        class="join-btn"
+                        onclick="window.open('${url}','_blank')"
+                    >
                         JOIN SERVER (${jobId.slice(0,6)}...)
                     </button>
                 `;
+
             }).join("")
-            : "<p style='color:gray'>No active servers</p>";
+
+            :
+
+            `
+                <div style="
+                    color:#777;
+                    text-align:center;
+                    padding:10px;
+                ">
+                    No active servers
+                </div>
+            `;
+
+        const card =
+            document.createElement("div");
+
+        card.className = "game-card";
 
         card.innerHTML = `
-            <div class="game-thumb" style="background-image:url('${game.thumbnail}')">
-                <div class="game-badge">LIVE</div>
+
+            <div
+                class="game-thumb"
+                style="
+                    background-image:url('${game.thumbnail}')
+                "
+            >
+                <div class="game-badge">
+                    LIVE
+                </div>
             </div>
 
             <div class="game-content">
-                <div class="game-name">${game.name}</div>
-                <div class="game-owner">by ${game.creator}</div>
+
+                <div class="game-name">
+                    ${game.name}
+                </div>
+
+                <div class="game-owner">
+                    by ${game.creator}
+                </div>
 
                 <div class="game-stats">
-                    <div class="stat-item"><div class="stat-val">${game.totalPlayers}</div><div>PLAYERS</div></div>
-                    <div class="stat-item"><div class="stat-val">${game.currentPlayers}</div><div>CURRENT</div></div>
-                    <div class="stat-item"><div class="stat-val">${game.maxPlayers}</div><div>MAX</div></div>
-                    <div class="stat-item"><div class="stat-val">${Number(game.visits||0).toLocaleString()}</div><div>VISITS</div></div>
+
+                    <div class="stat-item">
+                        <div class="stat-val">
+                            ${game.totalPlayers}
+                        </div>
+                        <div>PLAYERS</div>
+                    </div>
+
+                    <div class="stat-item">
+                        <div class="stat-val">
+                            ${game.currentPlayers}
+                        </div>
+                        <div>CURRENT</div>
+                    </div>
+
+                    <div class="stat-item">
+                        <div class="stat-val">
+                            ${game.maxPlayers}
+                        </div>
+                        <div>MAX</div>
+                    </div>
+
+                    <div class="stat-item">
+                        <div class="stat-val">
+                            ${Number(
+                                game.visits || 0
+                            ).toLocaleString()}
+                        </div>
+                        <div>VISITS</div>
+                    </div>
+
                 </div>
 
                 <div class="server-list">
                     ${servers}
                 </div>
+
             </div>
         `;
 
         container.appendChild(card);
+
     });
 }
 
-document.getElementById("search").addEventListener("input", renderGames);
-document.getElementById("sort").addEventListener("change", renderGames);
+document
+    .getElementById("search")
+    .addEventListener(
+        "input",
+        renderGames
+    );
 
+document
+    .getElementById("sort")
+    .addEventListener(
+        "change",
+        renderGames
+    );
+
+// auto refresh every 30 seconds
 setInterval(fetchGames, 30000);
+
+// initial fetch
 fetchGames();
 </script>
 
