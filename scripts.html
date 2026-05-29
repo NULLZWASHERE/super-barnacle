@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>RedWing Hub</title>
 
 <style>
@@ -13,7 +13,6 @@ body {
     color: #ff2b2b;
 }
 
-/* top bar */
 header {
     padding: 15px;
     background: #120000;
@@ -31,7 +30,6 @@ input, select {
     outline: none;
 }
 
-/* layout */
 .container {
     padding: 20px;
     display: grid;
@@ -39,7 +37,6 @@ input, select {
     gap: 15px;
 }
 
-/* card */
 .card {
     background: #120000;
     border: 1px solid #2a0000;
@@ -52,16 +49,8 @@ input, select {
     box-shadow: 0 0 15px rgba(255,0,0,0.2);
 }
 
-.title {
-    font-size: 16px;
-    font-weight: bold;
-}
-
-.desc {
-    font-size: 13px;
-    opacity: 0.8;
-    margin-top: 5px;
-}
+.title { font-size: 16px; font-weight: bold; }
+.desc { font-size: 13px; opacity: 0.8; margin-top: 5px; }
 
 .category {
     margin-top: 8px;
@@ -79,7 +68,6 @@ input, select {
     border: 1px solid #2a0000;
 }
 
-/* button */
 button {
     margin-top: 10px;
     width: 100%;
@@ -92,10 +80,6 @@ button {
     cursor: pointer;
 }
 
-button:hover {
-    opacity: 0.9;
-}
-
 .status {
     padding: 10px;
     color: #ff8080;
@@ -106,7 +90,7 @@ button:hover {
 <body>
 
 <header>
-    <input id="search" placeholder="Search scripts..." />
+    <input id="search" placeholder="Search scripts...">
     <select id="filter">
         <option value="all">All</option>
         <option value="visual">Visual</option>
@@ -122,41 +106,39 @@ let scriptsData = [];
 
 async function loadScripts() {
     try {
-        const res = await fetch(window.location.origin + "/scripts.txt")
+        const res = await fetch(window.location.origin + "/scripts.txt");
         const data = await res.json();
 
-        scriptsData = data.scripts;
-        render();
+        // ONLY FREE SCRIPTS
+        scriptsData = (data.scripts || []).filter(s =>
+            (s.requiredPlan || "Free") === "Free"
+        );
 
+        render();
     } catch (err) {
         document.getElementById("container").innerHTML =
             `<div class="status">Failed to load scripts: ${err.message}</div>`;
     }
 }
 
-/* EXECUTE FUNCTION */
+/* EXECUTE */
 async function executeScript(script) {
     try {
         const res = await fetch("https://redwingapi.infodmca.org/api/execute", {
             method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
                 script: script.content,
-                name: script.name
+                name: script.title
             })
         });
 
         const data = await res.json();
-
-        alert("Executed: " + script.name);
-
-        console.log("Execute response:", data);
+        alert("Executed: " + script.title);
+        console.log(data);
 
     } catch (err) {
         alert("Execute failed: " + err.message);
-        console.error(err);
     }
 }
 
@@ -168,22 +150,30 @@ function render() {
     container.innerHTML = "";
 
     const filtered = scriptsData.filter(s => {
+        const title = (s.title || "").toLowerCase();
+        const desc = (s.description || "").toLowerCase();
+        const category = s.category || "uncategorized";
+
         return (
-            (filter === "all" || s.category === filter) &&
-            (s.name.toLowerCase().includes(search) ||
-             s.description.toLowerCase().includes(search))
+            (filter === "all" || category === filter) &&
+            (title.includes(search) || desc.includes(search))
         );
     });
+
+    if (filtered.length === 0) {
+        container.innerHTML = `<div class="status">No free scripts found.</div>`;
+        return;
+    }
 
     filtered.forEach(script => {
         const card = document.createElement("div");
         card.className = "card";
 
         card.innerHTML = `
-            <div class="title">${script.name}</div>
-            <div class="desc">${script.description}</div>
-            <div class="category">${script.category}</div>
-            <div class="content">${script.content}</div>
+            <div class="title">${script.title || "Untitled"}</div>
+            <div class="desc">${script.description || ""}</div>
+            <div class="category">${script.category || "unknown"}</div>
+            <div class="content">${script.content || ""}</div>
             <button onclick='executeScript(${JSON.stringify(script)})'>
                 EXECUTE
             </button>
