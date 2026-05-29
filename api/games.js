@@ -41,7 +41,8 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: "Only GET allowed" });
   }
 
-  const COOKIE = "server_name_session=a2e03859d0873635e6f981e9c06c37ef; token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjI1MTM3LCJlbWFpbCI6InJlZHdpbmdzc2ZvbGxvd2VyQGdtYWlsLmNvbSIsInJhbmsiOiJzdGFuZGFyZCIsImlhdCI6MTc3OTk3MDA2NSwiZXhwIjoxNzgwNTc0ODY1fQ.kfkBJdwxGUcA1Omt9dJKR1UocWeyzE9XBo1zE3k__bg";
+   const COOKIE =
+      "server_name_session=a2e03859d0873635e6f981e9c06c37ef; token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjI0MzI3LCJlbWFpbCI6InZhbGRhcnZ1c0BnbWFpbC5jb20iLCJyYW5rIjoidXNlciIsImlhdCI6MTc4MDA2OTE0NCwiZXhwIjoxNzgwNjczOTQ0fQ.Of25Rw9ayHY4qBI8Nd70LIgAFfnJJ30lrsrZ1HIJcSM";
 
   try {
     const baseUrl = "https://builderx.fun";
