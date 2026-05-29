@@ -5,15 +5,14 @@ export default async function handler(req, res) {
   }
 
   try {
-    // ================== HARDCODED COOKIES ==================
+    // Hardcoded cookies from your Netscape file
     const cookies = [
       'user_id=6a19c1376d1460cfc5b9124b',
       'session_token=eyJhbGciOiJIUzI1NiJ9.eyJ1c2VySWQiOiI2YTE5YzEzNzZkMTQ2MGNmYzViOTEyNGIiLCJyb2xlIjoiRnJlZSIsInVzZXJuYW1lIjoicmVkd2luZyIsImVtYWlsIjoiZGVjYXBzdG9wQGdtYWlsLmNvbSIsInRhZyI6IjcxODciLCJpYXQiOjE3ODAwNzI3NTksImV4cCI6MTc4MDY3NzU1OX0.-KCVWedL_-unlX3qAYx7kxwc43msQkerEcla9UyIUZk',
       '__cf_bm=2xlw9ziDNC5EM9acQGyM7tJqco7p_1BrrgPiUZ5QgP0-1780072758.2590444-1.0.1.1-UsOnbwqJTREvTII2_QFUMJl6JLZaJKjiwYhBwXoJhMkYvd4lG.oYhVihL0aO7gkjgRlxG0kkCXEI0FlgbhGLrgMVOkUA8VrmcDyF.SK0mAe5eih3BT_s7Mc2CsObczvX'
     ].join('; ');
 
-    // Exact URL you requested
-    const targetUrl = "https://serverside.gg/api/games?page=1&limit=30&search=&sortBy=players&sortOrder=desc&plan=all&showLocked=false&_=1780072822734";
+    const targetUrl = "https://serverside.gg/api/games?page=1&limit=30&search=&sortBy=players&sortOrder=desc&plan=all&showLocked=false&_=" + Date.now();
 
     const response = await fetch(targetUrl, {
       method: 'GET',
@@ -23,9 +22,6 @@ export default async function handler(req, res) {
         'authorization': `Bearer eyJhbGciOiJIUzI1NiJ9.eyJ1c2VySWQiOiI2YTE5YzEzNzZkMTQ2MGNmYzViOTEyNGIiLCJyb2xlIjoiRnJlZSIsInVzZXJuYW1lIjoicmVkd2luZyIsImVtYWlsIjoiZGVjYXBzdG9wQGdtYWlsLmNvbSIsInRhZyI6IjcxODciLCJpYXQiOjE3ODAwNzI3NTksImV4cCI6MTc4MDY3NzU1OX0.-KCVWedL_-unlX3qAYx7kxwc43msQkerEcla9UyIUZk`,
         'cache-control': 'no-cache',
         'pragma': 'no-cache',
-        'sec-ch-ua': '"Chromium";v="148", "Google Chrome";v="148", "Not/A)Brand";v="99"',
-        'sec-ch-ua-mobile': '?0',
-        'sec-ch-ua-platform': '"Chrome OS"',
         'sec-fetch-dest': 'empty',
         'sec-fetch-mode': 'cors',
         'sec-fetch-site': 'same-origin',
@@ -36,6 +32,7 @@ export default async function handler(req, res) {
     if (!response.ok) {
       const errorText = await response.text();
       return res.status(response.status).json({
+        success: false,
         error: 'Failed to fetch from serverside.gg',
         status: response.status,
         details: errorText
@@ -43,11 +40,34 @@ export default async function handler(req, res) {
     }
 
     const data = await response.json();
-    return res.status(200).json(data);
+
+    // Transform data to match what your frontend expects
+    const transformed = {
+      success: true,
+      games: (data.games || []).map(game => ({
+        name: game.name || "Unknown Game",
+        placeId: game.placeId,
+        thumbnail: game.thumbUrl || "",
+        totalPlayers: game.playerCount || 0,
+        currentPlayers: game.playerCount || 0,
+        maxPlayers: game.maxPlayers || 0,
+        visits: 0, // not provided by this API
+        creator: "Unknown", // API doesn't provide creator
+        jobIds: (game.servers || []).reduce((acc, server) => {
+          if (server.jobId) acc[server.jobId] = server;
+          return acc;
+        }, {})
+      })),
+      total: data.total || 0,
+      totalPlayers: data.totalPlayers || 0
+    };
+
+    return res.status(200).json(transformed);
 
   } catch (error) {
-    console.error('Serverside API Error:', error);
+    console.error('API Error:', error);
     return res.status(500).json({
+      success: false,
       error: 'Internal server error',
       message: error.message
     });
